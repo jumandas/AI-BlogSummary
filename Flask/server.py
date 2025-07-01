@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 client = OpenAI(
-    api_key= "openai-api-key"
+    api_key= "key"
 )
 
 @app.route('/summarize', methods=['POST'])
