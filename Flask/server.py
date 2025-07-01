@@ -8,9 +8,9 @@ import asyncio
 app = Flask(__name__)
 CORS(app)
 
-client = OpenAI(
-    api_key= "key"
-)
+# client = OpenAI(
+#     api_key= "key"
+# )
 
 @app.route('/summarize', methods=['POST'])
 def summarize_text():
