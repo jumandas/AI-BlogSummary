@@ -10,6 +10,9 @@ const [text, setText] = useState('');
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Handle summarization request
+  // This function sends the text to the Flask backend for summarization
+  // and updates the summary state with the response.
   const handleSummarize = async () => {
     setLoading(true);
     try {
@@ -22,6 +25,8 @@ const [text, setText] = useState('');
     }
   };
 
+  // Function to download the summary as a PDF
+  // This function sends the summary to the Flask backend, which generates a PDF  
   const downloadPDF = async () => {
     try {
       const response = await axios.post(

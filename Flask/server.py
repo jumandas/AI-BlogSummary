@@ -13,6 +13,7 @@ CORS(app)
 # )
 
 @app.route('/summarize', methods=['POST'])
+# This endpoint receives text from the React frontend, sends it to the OpenAI API for summarization, and returns the summary.
 def summarize_text():
     data = request.json
     text = data.get('text', '')
@@ -34,6 +35,8 @@ def summarize_text():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/download-pdf', methods=['POST'])
+# This endpoint receives a summary from the React frontend, generates a PDF file with the summary, and sends it back as a downloadable file.
+# It uses the ReportLab library to create the PDF.
 def download_pdf():
     data = request.json
     summary = data.get('summary', '')
