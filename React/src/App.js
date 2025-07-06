@@ -1,73 +1,124 @@
-import logo from './logo.svg';
-import './App.css';
 import React, { useState } from 'react';
 import axios from 'axios';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  TextField,
+  Button,
+  Paper,
+  Box,
+  CircularProgress,
+  Stack,
+} from '@mui/material';
+import SummarizeIcon from '@mui/icons-material/Notes';
+import DownloadIcon from '@mui/icons-material/Download';
 
 function App() {
-const [text, setText] = useState('');
+  const [text, setText] = useState('');
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Handle summarization request
-  // This function sends the text to the Flask backend for summarization
-  // and updates the summary state with the response.
+  // Send the article text to the Flask backend and retrieve the summary
   const handleSummarize = async () => {
+    if (!text.trim()) return;
     setLoading(true);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/summarize', { text });
-      setSummary(response.data.summary);
+      const { data } = await axios.post('http://127.0.0.1:8000/summarize', { text });
+      setSummary(data.summary);
     } catch (err) {
-      alert('Error summarizing text.');
+      console.error(err);
+      alert('Error summarizing text. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Function to download the summary as a PDF
-  // This function sends the summary to the Flask backend, which generates a PDF  
+  // Request the Flask backend to generate and stream a PDF version of the summary
   const downloadPDF = async () => {
     try {
-      const response = await axios.post(
+      const { data } = await axios.post(
         'http://127.0.0.1:8000/download-pdf',
         { summary },
         { responseType: 'blob' }
       );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', 'summary.pdf');
       document.body.appendChild(link);
       link.click();
+      link.parentNode?.removeChild(link);
     } catch (err) {
-      alert('Failed to download PDF');
+      console.error(err);
+      alert('Failed to download PDF.');
     }
   };
 
   return (
-    <div style={{ padding: 40 }}>
-      <h2>AI-Powered Blog Summarizer</h2>
-      <TextField id="outlined-basic" label="Enter your Summary" variant="outlined"
-        placeholder="Paste your blog content here..."
-        rows={10}
-        style={{ width: '100%', marginBottom: 10 }}
-        value={text}
-        onChange={e => setText(e.target.value)}
-      />
-      <br />
-      <Button variant="contained" onClick={handleSummarize} disabled={loading}>
-        {loading ? 'Summarizing...' : 'Summarize'}
-      </Button>
+    <>
+      {/* Header */}
+      <AppBar position="static" color="primary" elevation={2}>
+        <Toolbar>
+          <SummarizeIcon sx={{ mr: 1 }} />
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            AI Blog Summarizer
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-      {summary && (
-        <div style={{ marginTop: 30 }}>
-          <h3>Summary:</h3>
-          <pre>{summary}</pre>
-          <button onClick={downloadPDF}>Download PDF</button>
-        </div>
-      )}
-    </div>
+      {/* Main Content */}
+      <Container maxWidth="md" sx={{ my: 4 }}>
+        <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 } }}>
+          <Stack spacing={3}>
+            <Typography variant="subtitle1" color="text.secondary">
+              Paste your blog or article text below — get a concise, AI‑generated summary in seconds.
+            </Typography>
+
+            {/* Input Field */}
+            <TextField
+              label="Article Text"
+              placeholder="Paste your content here..."
+              multiline
+              minRows={8}
+              fullWidth
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+
+            {/* Summarize Button */}
+            <Box>
+              <Button
+                variant="contained"
+                startIcon={loading ? <CircularProgress size={20} /> : <SummarizeIcon />}
+                onClick={handleSummarize}
+                disabled={loading || !text.trim()}
+              >
+                {loading ? 'Summarizing…' : 'Generate Summary'}
+              </Button>
+            </Box>
+
+            {/* Summary Output */}
+            {summary && (
+              <Paper variant="outlined" sx={{ p: 2, bgcolor: 'grey.50' }}>
+                <Typography variant="h6" gutterBottom>
+                  Summary
+                </Typography>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {summary}
+                </Typography>
+                <Box textAlign="right" mt={2}>
+                  <Button variant="outlined" startIcon={<DownloadIcon />} onClick={downloadPDF}>
+                    Download as PDF
+                  </Button>
+                </Box>
+              </Paper>
+            )}
+          </Stack>
+        </Paper>
+      </Container>
+    </>
   );
 }
 
